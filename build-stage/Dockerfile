@@ -1,8 +1,6 @@
-FROM denismakogon/ffmpeg-alpine:4.0-golang
+FROM golang:1.18.3-alpine3.16
 
-LABEL maintainer="Denis Makogon. mail: lildee1991@gmail.com"
-
-ENV OPENCV_VERSION=4.0.1
+ENV OPENCV_VERSION=4.6.0
 ENV BUILD="ca-certificates \
          git \
          build-base \
@@ -15,20 +13,16 @@ ENV BUILD="ca-certificates \
          linux-headers \
          libjpeg-turbo \
          libpng \
-         libwebp \
-         libwebp-dev \
          tiff \
          libavc1394 \
-         jasper-libs \
          openblas \
-         libgphoto2 \
-         gstreamer \
-         gst-plugins-base"
+         ffmpeg \
+         libgphoto2"
 
 ENV DEV="clang clang-dev cmake pkgconf \
-         openblas-dev gstreamer-dev gst-plugins-base-dev \
+         openblas-dev \
          libgphoto2-dev libjpeg-turbo-dev libpng-dev \
-         tiff-dev jasper-dev libavc1394-dev"
+         tiff-dev libavc1394-dev coreutils ffmpeg-dev"
 
 
 RUN apk update && \
@@ -46,10 +40,11 @@ RUN mkdir /tmp/opencv && \
     -D CMAKE_INSTALL_PREFIX=/usr/local \
     -D OPENCV_EXTRA_MODULES_PATH=/tmp/opencv/opencv_contrib-${OPENCV_VERSION}/modules \
     -D WITH_FFMPEG=YES \
+    -D WITH_JASPER=NO \
     -D INSTALL_C_EXAMPLES=NO \
     -D INSTALL_PYTHON_EXAMPLES=NO \
     -D BUILD_ANDROID_EXAMPLES=NO \
-    -D BUILD_DOCS=NO \
+    -D BUILD_DOCS=OFF \
     -D BUILD_TESTS=NO \
     -D BUILD_PERF_TESTS=NO \
     -D BUILD_EXAMPLES=NO \
@@ -58,7 +53,7 @@ RUN mkdir /tmp/opencv && \
     -D BUILD_opencv_python2=NO \
     -D BUILD_opencv_python3=NO \
     -D OPENCV_GENERATE_PKGCONFIG=YES .. && \
-    make -j4 && \
+    make -j$(nproc --all) && \
     make install && \
     cd && rm -rf /tmp/opencv
 
